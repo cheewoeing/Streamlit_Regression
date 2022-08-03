@@ -8,11 +8,12 @@ from sklearn.metrics import plot_confusion_matrix, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBClassifier, to_graphviz
+from xgboost import XGBClassifier, to_graphviz, plot_tree
+import graphviz
 
 # The following lines are meant to allow us to add multiple buttons on the same page
 ################################################################
-button_list = ['proceed1', 'proceed2', 'proceed3', 'proceed4', 'proceed5']
+button_list = ['proceed1', 'proceed2', 'proceed3', 'proceed4', 'proceed5', 'proceed6']
 for button in button_list:
     if button not in st.session_state:
         st.session_state[button] = False
@@ -36,6 +37,10 @@ def proceed4_button():
 
 def proceed5_button():
     st.session_state.proceed5 = True
+
+
+def proceed6_button():
+    st.session_state.proceed6 = True
 
 
 ################################################################
@@ -78,9 +83,9 @@ c5, c6 = st.columns(2)
 e4 = st.container()
 c7, c8 = st.columns(2)
 e5 = st.container()
-c9, c10 = st.columns(2)
+c9 = st.container()
 e6 = st.container()
-c11, c12 = st.columns(2)
+c10, c11 = st.columns(2)
 
 e1.markdown("""---""")
 e1.header('Section 1')
@@ -91,6 +96,15 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     columns = df.columns
     c1.subheader("1.2 Deal with missing data")
+    drop_missing_data = c1.checkbox('Drop rows with missing data?')
+
+    if drop_missing_data:
+        drop_missing_data_columns = c1.multiselect('Drop rows that has empty value for following fields',
+                                                   columns)
+
+        if len(drop_missing_data_columns) > 0:
+            df = df.dropna(subset=drop_missing_data_columns)
+
     fill_missing_data = c1.checkbox('Fill missing numerical data with mean?')
 
     if fill_missing_data:
@@ -119,7 +133,7 @@ if uploaded_file is not None:
         # Select features and label
 
         c3.subheader("2.1 Select features (X)")
-        features = c3.multiselect('Select features(X)', columns, list(columns[:-1]))
+        features = c3.multiselect('Select features(X)', columns)
         if len(features) > 0:
             c3.subheader("2.2 Select label (y)")
             label = c3.radio('Select label(y)', columns[~columns.isin(features)])
@@ -240,13 +254,13 @@ if uploaded_file is not None:
                             y_pred = model.predict(X_test)
 
                             e5.subheader(f"Model accuracy: {round(accuracy_score(y_test, y_pred), 4) * 100} %")
-                            viz = to_graphviz(model)
-                            viz.render(filename='tree', format='png')
-                            c9.image('tree.png')
+
                             plot_confusion_matrix(model, X_test, y_test, display_labels=class_names)
                             plt.title('Confusion matrix')
                             plt.savefig('cm.png')
-                            c10.image('cm.png')
+                            c9.image('cm.png')
+                            viz = to_graphviz(model)
+                            c9.graphviz_chart(str(viz))
                             c9.download_button("Download model.pkl", data=pickle.dumps(model), file_name="model.pkl",
                                                disabled=not model)
                             proceed5 = (c9.button('Proceed to next step', on_click=proceed5_button,
@@ -255,15 +269,15 @@ if uploaded_file is not None:
                             if proceed5:
                                 e6.markdown("""---""")
                                 e6.header('Section 6')
-                                c11.subheader('6.1 User input')
+                                c10.subheader('6.1 Make Prediction with User input')
 
                                 user_input_dict = {}
                                 for feature in features:
                                     if isColumnNumeric[feature]:
-                                        user_input_dict[feature] = [c11.number_input(f"{feature}:", value=0, step=1)]
+                                        user_input_dict[feature] = [c10.number_input(f"{feature}:")]
                                     else:
                                         user_input_dict[feature] = [
-                                            c11.selectbox(f"{feature}", columnUniqueValues[feature])]
+                                            c10.selectbox(f"{feature}", columnUniqueValues[feature])]
 
                                 user_input_df = pd.DataFrame.from_dict(user_input_dict)
 
@@ -274,14 +288,19 @@ if uploaded_file is not None:
                                 if features_scaled:
                                     user_input_df[features_scaled] = sc.transform(user_input_df[features_scaled])
 
-                                c12.subheader('6.2 Make prediction')
-                                try:
-                                    pred = model.predict(user_input_df)
-                                    if label_encode:
-                                        c12.write(f"The prediction for {label} is {le.inverse_transform(pred)}.")
+                                proceed6 = (c10.button('Proceed to make prediction', on_click=proceed6_button,
+                                                       key=6) or st.session_state.proceed6)
 
-                                    else:
-                                        c12.write(f"The prediction for {label} is {pred}.")
+                                if proceed6:
 
-                                except:
-                                    c6.error('Couldn\'t make prediction at this moment.')
+                                    c11.subheader('6.2 Prediction')
+                                    try:
+                                        pred = model.predict(user_input_df)
+                                        if label_encode:
+                                            c11.write(f"The prediction for {label} is {(le.inverse_transform(pred))[0]}.")
+
+                                        else:
+                                            c11.write(f"The prediction for {label} is {pred[0]}.")
+
+                                    except:
+                                        c6.error('Couldn\'t make prediction at this moment.')
