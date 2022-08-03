@@ -41,7 +41,7 @@ def proceed5_button():
 ################################################################
 
 st.set_page_config(page_title='Machine Learning with Streamlit', layout='wide')
-st.title("MMachine Learning with XGBoost Classifier Made Easy")
+st.title("Machine Learning with XGBoost Classifier Made Easy")
 
 st.subheader("This tool helps you preprocess your data and build your model efficiently with just few simple clicks.")
 st.markdown("Follow these few steps and you will have your machine learning model in no time.")
