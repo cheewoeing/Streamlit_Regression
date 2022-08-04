@@ -1,19 +1,21 @@
 import pickle
+
+import graphviz
 import streamlit as st
 from dtreeviz.trees import *
 from pandas.api.types import is_numeric_dtype
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import plot_confusion_matrix, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBClassifier, to_graphviz, plot_tree
-import graphviz
+
+from catboost import CatBoostRegressor,Pool
+
 
 # The following lines are meant to allow us to add multiple buttons on the same page
 ################################################################
-button_list = ['proceed1', 'proceed2', 'proceed3', 'proceed4', 'proceed5', 'proceed6']
+button_list = ['proceed1', 'proceed2', 'proceed3', 'proceed4', 'proceed5']
 for button in button_list:
     if button not in st.session_state:
         st.session_state[button] = False
@@ -39,14 +41,31 @@ def proceed5_button():
     st.session_state.proceed5 = True
 
 
-def proceed6_button():
-    st.session_state.proceed6 = True
+# def model_building(X, y):
+#     with st.spinner('Model building in progress'):
+#         try:
+#             model = XGBClassifier()
+#             model.fit(X, y)
+#
+#         except:
+#             st.error("Please make sure all the string variables are encoded.")
+#     return model
+
+def cat_boost_model_building(X, y):
+    with st.spinner('Model building in progress'):
+        try:
+            model = CatBoostRegressor()
+            model.fit(X, y)
+
+        except:
+            st.error("Please make sure all the string variables are encoded.")
+    return model
 
 
 ################################################################
 
 st.set_page_config(page_title='Machine Learning with Streamlit', layout='wide')
-st.title("Machine Learning with XGBoost Classifier Made Easy")
+st.title("Machine Learning with CatBoost Regressor Made Easy")
 
 st.subheader("This tool helps you preprocess your data and build your model efficiently with just few simple clicks.")
 st.markdown("Follow these few steps and you will have your machine learning model in no time.")
@@ -61,13 +80,19 @@ Moreover, you can download your model in pkl format.\n
 Step 6: Ready to make some predictions? Input the feature values and generate prediction as output. Isn't it great?\n
 \n""")
 st.markdown("""---""")
+st.markdown("""To help you better understand how this app works, I have prepared a sample dataset
+<a href="https://github.com/cheewoeing/Streamlit_Classification/blob/master/Sample_Data/penguins.csv">penguins.csv</a>
+. You can use this dataset and follow along with the step-by-step instructions given in this
+<a href="https://github.com/cheewoeing/Streamlit_Classification/blob/master/Sample_Data/README.txt">README.txt</a>.""",
+            unsafe_allow_html=True)
+st.markdown("""---""")
 st.markdown("""
 This app is made with  <a href="https://streamlit.io">Streamlit API</a>. \n
 I have taken some reference from this Udemy course 
-<a href="https://www.udemy.com/course/machinelearning/">Machine Learning A-Z</a>. This course gave an very good 
+<a href="https://www.udemy.com/course/machinelearning/">Machine Learning A-Z</a>. This course gave a very good 
 explanation on various machine learning algorithms.\n
 Also, I strongly recommend this 
-<a href="https://www.youtube.com/watch?v=JwSS70SZdyM&t=9068s">video</a>video on YouTube by 
+<a href="https://www.youtube.com/watch?v=JwSS70SZdyM&t=9068s">video</a> on YouTube by 
 <a href="https://www.youtube.com/dataprofessor">Data Professor</a>. Ths video helps me get a very good understanding of 
 various types of Streamlit implementations. \n
 """, unsafe_allow_html=True)
@@ -241,26 +266,29 @@ if uploaded_file is not None:
                         e5.subheader('5.1 Build and evaluate model')
 
                         model = None
-                        with st.spinner('Model building in progress'):
-                            try:
-                                model = XGBClassifier()
-                                model.fit(X_train, y_train)
-
-                            except:
-                                st.error("Please make sure all the string variables are encoded.")
+                        # model = model_building(X_train, y_train)
+                        model = cat_boost_model_building(X_train,y_train)
+                        # with st.spinner('Model building in progress'):
+                        #     try:
+                        #         model = XGBClassifier()
+                        #         model.fit(X_train, y_train)
+                        #
+                        #     except:
+                        #         st.error("Please make sure all the string variables are encoded.")
 
                         if model:
 
                             y_pred = model.predict(X_test)
 
-                            e5.subheader(f"Model accuracy: {round(accuracy_score(y_test, y_pred), 4) * 100} %")
+                            # e5.subheader(f"Model accuracy: {round((accuracy_score(y_test, y_pred)) * 100, 4)} %")
+                            #
+                            # plot_confusion_matrix(model, X_test, y_test, display_labels=class_names)
+                            # plt.title('Confusion matrix')
+                            # plt.savefig('cm.png')
+                            # c9.image('cm.png')
 
-                            plot_confusion_matrix(model, X_test, y_test, display_labels=class_names)
-                            plt.title('Confusion matrix')
-                            plt.savefig('cm.png')
-                            c9.image('cm.png')
-                            viz = to_graphviz(model)
-                            c9.graphviz_chart(str(viz))
+                            c9.graphviz_chart(str(model.plot_tree(tree_idx=0)))
+
                             c9.download_button("Download model.pkl", data=pickle.dumps(model), file_name="model.pkl",
                                                disabled=not model)
                             proceed5 = (c9.button('Proceed to next step', on_click=proceed5_button,
@@ -272,6 +300,7 @@ if uploaded_file is not None:
                                 c10.subheader('6.1 Make Prediction with User input')
 
                                 user_input_dict = {}
+                                # with st.form("my_form"):
                                 for feature in features:
                                     if isColumnNumeric[feature]:
                                         user_input_dict[feature] = [c10.number_input(f"{feature}:")]
@@ -286,21 +315,17 @@ if uploaded_file is not None:
                                     user_input_df = pd.DataFrame(user_input_df, columns=columns_name)
 
                                 if features_scaled:
-                                    user_input_df[features_scaled] = sc.transform(user_input_df[features_scaled])
+                                    user_input_df[features_scaled] = sc.transform(
+                                        user_input_df[features_scaled])
 
-                                proceed6 = (c10.button('Proceed to make prediction', on_click=proceed6_button,
-                                                       key=6) or st.session_state.proceed6)
+                                try:
+                                    pred = model.predict(user_input_df)
+                                    if label_encode:
+                                        st.subheader(
+                                            f"The prediction for {label} is {(le.inverse_transform(pred))[0]}.")
 
-                                if proceed6:
+                                    else:
+                                        st.subheader(f"The prediction for {label} is {pred[0]}.")
 
-                                    c11.subheader('6.2 Prediction')
-                                    try:
-                                        pred = model.predict(user_input_df)
-                                        if label_encode:
-                                            c11.write(f"The prediction for {label} is {(le.inverse_transform(pred))[0]}.")
-
-                                        else:
-                                            c11.write(f"The prediction for {label} is {pred[0]}.")
-
-                                    except:
-                                        c6.error('Couldn\'t make prediction at this moment.')
+                                except:
+                                    st.error('Couldn\'t make prediction at this moment.')
