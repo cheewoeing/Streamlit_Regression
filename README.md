@@ -41,6 +41,8 @@ Please select "charges".
 ## 2.3 One-hot encode features
 Please check "One-hot encode features?" and on the drop down menu please select "sex", "smoker","region".
 
+![Screenshot 2022-08-04 at 5 14 54 PM](https://user-images.githubusercontent.com/104248593/182810788-a3f7aa26-8f7b-4338-bda4-4cc10a089e6e.png)
+
 Click "Proceed to next step".
 
 ## 3.1 Encode label
@@ -56,13 +58,20 @@ Please select "age", "bmi", "children".
 
 You can also preview and download X_train, y_train, X_test, y_test in .csv format here
 
+![Screenshot 2022-08-04 at 5 15 54 PM](https://user-images.githubusercontent.com/104248593/182810948-fc1925d1-c624-4737-b233-fd5ffd428337.png)
+
 Click "Proceed to next step".
 
 ## 5.1 Build and evaluate model
 After the model is built, you can view the chart that compares y_test and y_pred. Moreoveer, you can download the model
 tree visualisation and model file in pkl format here.
 
+![Screenshot 2022-08-04 at 5 16 26 PM](https://user-images.githubusercontent.com/104248593/182811062-68d7022e-a2cc-4c30-bec6-59c69ce36e0f.png)
+
 Once you are satisfied with the result, click "Proceed to next step".
 
 ## 6.1 Make prediction with user input
 Now our model is ready for making prediction, input the feature values and the prediction will be generated below.
+
+![Screenshot 2022-08-04 at 5 19 45 PM](https://user-images.githubusercontent.com/104248593/182811740-910b668b-75d3-4957-8bd4-e72d9f7080ef.png)
+
