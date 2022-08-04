@@ -9,7 +9,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import StandardScaler
-
+import re
 from catboost import CatBoostRegressor,Pool
 
 
@@ -180,7 +180,10 @@ if uploaded_file is not None:
                 one_hot_column = c3.multiselect("Features to be one-hot encoded", features)
                 ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(), one_hot_column)], remainder=
                 'passthrough')
-                X = np.array(ct.fit_transform(X))
+                try:
+                    X = np.array(ct.fit_transform(X))
+                except:
+                    c3.error("This column cannot be one-hot encoded.")
                 columns_name = ct.get_feature_names()
                 X = pd.DataFrame(X, columns=columns_name)
 
@@ -221,7 +224,9 @@ if uploaded_file is not None:
 
                     # Select features to be scaled
                     c7.subheader("4.2 Scaling features")
-                    features_scaled = c7.multiselect("Features to be scaled(Optional)", X.columns)
+                    r= re.compile("^(?!encoder.*$).*")
+                    features_scaled_option= list(filter(r.match,X.columns))
+                    features_scaled = c7.multiselect("Features to be scaled(Optional)", features_scaled_option)
 
                     if len(features_scaled) > 0:
                         sc = StandardScaler()
