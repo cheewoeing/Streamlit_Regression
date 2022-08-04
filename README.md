@@ -22,8 +22,9 @@ Please upload the insurance.csv file that you have just downloaded.
 Our objective is to predict the insurance charges.
 
 ## 1.2 Deal with missing data
-I have delibetely deleted some fields on the first 4 rows of data. Please check "Drop rows with missing data?" and on the
-drop down menu please select "sex". You will notice that first 2 rows has been deleted as their "sex" field is empty.
+I have delibetely deleted some fields on the first 4 rows of data for demo purpose. 
+Please check "Drop rows with missing data?" and on the drop down menu please select "sex". 
+You will notice that first 2 rows has been deleted as their "sex" field is empty.
 Also, please check "fill missing data with mean?" and on the drop down menu please select "bmi". You will
 notice that row 2 and 3 has been filled with mean value of the column.
 
