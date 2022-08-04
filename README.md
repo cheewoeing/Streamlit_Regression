@@ -27,37 +27,37 @@ notice that row 2 and 3 has been filled with mean value of the column.
 
 Click "Proceed to next step"
 
-2.1 Select features(X)
+## 2.1 Select features(X)
 Please select "age","sex", "bmi", "children", "smoker", "region".
 
-2.2 Select label(y)
+## 2.2 Select label(y)
 Please select "charges".
 
-2.3 One-hot encode features
+## 2.3 One-hot encode features
 Please check "One-hot encode features?" and on the drop down menu please select "sex", "smoker","region".
 
 Click "Proceed to next step".
 
-3.1 Encode label
+## 3.1 Encode label
 You may skip this step for regression problem.
 
 Click "Proceed to next step".
 
-4.1 Splitting data into train and test set
+## 4.1 Splitting data into train and test set
 Please select the size of the test set as you like. Here I would recommend 0.2.
 
-4.2 Scaling features
+## 4.2 Scaling features
 Please select "age", "bmi", "children".
 
 You can also preview and download X_train, y_train, X_test, y_test in .csv format here
 
 Click "Proceed to next step".
 
-5.1 Build and evaluate model
+## 5.1 Build and evaluate model
 After the model is built, you can view the chart that compares y_test and y_pred. Moreoveer, you can download the model
 tree visualisation and model file in pkl format here.
 
 Once you are satisfied with the result, click "Proceed to next step".
 
-6.1 Make prediction with user input
+## 6.1 Make prediction with user input
 Now our model is ready for making prediction, input the feature values and the prediction will be generated below.
