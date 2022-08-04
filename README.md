@@ -2,6 +2,8 @@
 
 Hi. Welcome to my app.
 
+I have made this app to help you preprocess your dataset and build ML model efficiently with just few simple clicks.
+
 This app is designed such that it can process any CSV files. To help you better understand how this app works, you may
 use the sample data provided and follow along with the instructions below.
 
@@ -14,9 +16,9 @@ You can access the source code via this Github repo
 https://github.com/cheewoeing/Streamlit_Regression
 
 ## 1.1 Upload your CSV file
-Please upload the insurance.csv file that you have just downloaded.
 You can get the sample data via the link below.
 https://github.com/cheewoeing/Streamlit_Regression/blob/master/Sample%20Data/insurance.csv
+Please upload the insurance.csv file that you have just downloaded.
 Our objective is to predict the insurance charges.
 
 ## 1.2 Deal with missing data
