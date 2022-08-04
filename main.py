@@ -1,17 +1,16 @@
 import pickle
-
 import graphviz
+import pandas as pd
 import streamlit as st
 from dtreeviz.trees import *
 from pandas.api.types import is_numeric_dtype
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error,r2_score
 import re
-from catboost import CatBoostRegressor,Pool
-
+from catboost import CatBoostRegressor
 
 # The following lines are meant to allow us to add multiple buttons on the same page
 ################################################################
@@ -41,22 +40,11 @@ def proceed5_button():
     st.session_state.proceed5 = True
 
 
-# def model_building(X, y):
-#     with st.spinner('Model building in progress'):
-#         try:
-#             model = XGBClassifier()
-#             model.fit(X, y)
-#
-#         except:
-#             st.error("Please make sure all the string variables are encoded.")
-#     return model
-
 def cat_boost_model_building(X, y):
     with st.spinner('Model building in progress'):
         try:
             model = CatBoostRegressor()
             model.fit(X, y)
-
         except:
             st.error("Please make sure all the string variables are encoded.")
     return model
@@ -75,8 +63,8 @@ Step 2: Define your features and label. At the same time it's a good idea to enc
 Step 3: Encode you label if its has not been done on your csv file.\n
 Step 4: Now let's choose the size of the test set. Also, you can scale your features here. Machine learning model 
 that are trained on scaled features are generally deliver better result.\n
-Step 5: It's time to build your model!!! Here you get to visualize and evaluate your model with confusion matrix. 
-Moreover, you can download your model in pkl format.\n
+Step 5: It's time to build your model!!! Here you get to visualize and evaluate your model. Moreover, you can download 
+your model in pkl format ans its tree visualization.\n
 Step 6: Ready to make some predictions? Input the feature values and generate prediction as output. Isn't it great?\n
 \n""")
 st.markdown("""---""")
@@ -108,9 +96,9 @@ c5, c6 = st.columns(2)
 e4 = st.container()
 c7, c8 = st.columns(2)
 e5 = st.container()
-c9 = st.container()
+c9, c10 = st.columns(2)
 e6 = st.container()
-c10, c11 = st.columns(2)
+c11, c12 = st.columns(2)
 
 e1.markdown("""---""")
 e1.header('Section 1')
@@ -224,8 +212,8 @@ if uploaded_file is not None:
 
                     # Select features to be scaled
                     c7.subheader("4.2 Scaling features")
-                    r= re.compile("^(?!encoder.*$).*")
-                    features_scaled_option= list(filter(r.match,X.columns))
+                    r = re.compile("^(?!encoder.*$).*")
+                    features_scaled_option = list(filter(r.match, X.columns))
                     features_scaled = c7.multiselect("Features to be scaled(Optional)", features_scaled_option)
 
                     if len(features_scaled) > 0:
@@ -271,47 +259,47 @@ if uploaded_file is not None:
                         e5.subheader('5.1 Build and evaluate model')
 
                         model = None
-                        # model = model_building(X_train, y_train)
-                        model = cat_boost_model_building(X_train,y_train)
-                        # with st.spinner('Model building in progress'):
-                        #     try:
-                        #         model = XGBClassifier()
-                        #         model.fit(X_train, y_train)
-                        #
-                        #     except:
-                        #         st.error("Please make sure all the string variables are encoded.")
-
+                        model = cat_boost_model_building(X_train, y_train)
                         if model:
-
                             y_pred = model.predict(X_test)
+                            mse = mean_squared_error(y_test, y_pred)
+                            rmse = mean_squared_error(y_test, y_pred, squared=False)
+                            r_2 = r2_score(y_test,y_pred)
+                            c10.subheader(f"Mean squared error: {round(mse, 4)} ")
+                            c10.subheader(f"Root mean squared error: {round(rmse, 4)}")
+                            c10.subheader(f"R-square: {round(r_2, 4)}")
 
-                            # e5.subheader(f"Model accuracy: {round((accuracy_score(y_test, y_pred)) * 100, 4)} %")
-                            #
-                            # plot_confusion_matrix(model, X_test, y_test, display_labels=class_names)
-                            # plt.title('Confusion matrix')
-                            # plt.savefig('cm.png')
-                            # c9.image('cm.png')
+                            viz_df = pd.DataFrame(list(zip(y_test, y_pred)), columns=['y_test', 'y_pred'])
+                            c9.line_chart(viz_df)
 
-                            c9.graphviz_chart(str(model.plot_tree(tree_idx=0)))
+                            graph = model.plot_tree(tree_idx=0)
+                            graph.format = 'svg'
+                            graph.render()
+                            with open("Digraph.gv.svg", "rb") as file:
+                                btn = c10.download_button(
+                                    label="Download tree visualization",
+                                    data=file,
+                                    file_name="Digraph.gv.svg",
+                                    mime="image/svg"
+                                )
 
-                            c9.download_button("Download model.pkl", data=pickle.dumps(model), file_name="model.pkl",
-                                               disabled=not model)
+                            c10.download_button("Download model.pkl", data=pickle.dumps(model), file_name="model.pkl",
+                                                disabled=not model)
                             proceed5 = (c9.button('Proceed to next step', on_click=proceed5_button,
                                                   key=5) or st.session_state.proceed5)
 
                             if proceed5:
                                 e6.markdown("""---""")
                                 e6.header('Section 6')
-                                c10.subheader('6.1 Make Prediction with User input')
+                                c11.subheader('6.1 Make Prediction with User input')
 
                                 user_input_dict = {}
-                                # with st.form("my_form"):
                                 for feature in features:
                                     if isColumnNumeric[feature]:
-                                        user_input_dict[feature] = [c10.number_input(f"{feature}:")]
+                                        user_input_dict[feature] = [c11.number_input(f"{feature}:")]
                                     else:
                                         user_input_dict[feature] = [
-                                            c10.selectbox(f"{feature}", columnUniqueValues[feature])]
+                                            c11.selectbox(f"{feature}", columnUniqueValues[feature])]
 
                                 user_input_df = pd.DataFrame.from_dict(user_input_dict)
 
