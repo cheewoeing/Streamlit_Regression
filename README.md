@@ -27,6 +27,9 @@ drop down menu please select "sex". You will notice that first 2 rows has been d
 Also, please check "fill missing data with mean?" and on the drop down menu please select "bmi". You will
 notice that row 2 and 3 has been filled with mean value of the column.
 
+![Screenshot 2022-08-04 at 5 11 44 PM](https://user-images.githubusercontent.com/104248593/182810133-8376729d-94b7-46e6-ac6b-d7dc7a76e84e.png)
+
+
 Click "Proceed to next step"
 
 ## 2.1 Select features(X)
